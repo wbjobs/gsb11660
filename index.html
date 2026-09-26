@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Web Locks 多标签页锁竞争演示</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<header>
+  <h1>Web Locks 多标签页锁竞争演示</h1>
+  <div class="badges">
+    <span id="backend-badge" class="badge">检测中…</span>
+    <span id="tab-badge" class="badge me"></span>
+    <label class="fallback-toggle">
+      <input type="checkbox" id="force-fallback" /> 强制 BroadcastChannel 降级模式（需刷新）
+    </label>
+  </div>
+</header>
+
+<main>
+  <section class="panel controls">
+    <h2>锁请求控制台</h2>
+    <div class="row">
+      <label>锁资源
+        <select id="lock-name">
+          <option value="resource-A">resource-A</option>
+          <option value="resource-B">resource-B</option>
+        </select>
+      </label>
+      <label>模式
+        <select id="lock-mode">
+          <option value="exclusive">exclusive（独占）</option>
+          <option value="shared">shared（共享）</option>
+        </select>
+      </label>
+      <label>持有时长 <input id="hold-ms" type="number" value="4000" min="500" max="60000" step="500" /> ms</label>
+      <label>超时时间 <input id="timeout-ms" type="number" value="5000" min="500" max="60000" step="500" /> ms</label>
+    </div>
+    <div class="row btns">
+      <button id="btn-acquire">获取锁（到时自动释放）</button>
+      <button id="btn-acquire-manual">获取并手动释放</button>
+      <button id="btn-release-all" class="warn">释放本页全部锁</button>
+      <button id="btn-cancel-all" class="warn">取消本页等待中请求</button>
+    </div>
+
+    <h2>场景演练</h2>
+    <div class="row btns scenarios">
+      <button data-scenario="exclusive-race">① 独占竞争 ×3</button>
+      <button data-scenario="shared-parallel">② 共享并发 ×3</button>
+      <button data-scenario="shared-vs-exclusive">③ 共享 vs 独占互斥</button>
+      <button data-scenario="timeout-degrade">④ 超时降级</button>
+      <button data-scenario="deadlock-safe">⑤ 死锁避免（有序获取 A+B）</button>
+      <button data-scenario="deadlock-unsafe">⑥ 死锁演示（无序，超时兜底）</button>
+      <button data-scenario="long-hold">⑦ 长时间占用 30s</button>
+    </div>
+    <p class="hint">提示：多开几个标签页访问本页面即可观察跨标签页竞争。关闭/杀掉持有锁的标签页，锁会被自动释放（Web Locks 原生保证；降级模式靠心跳租约）。</p>
+  </section>
+
+  <section class="panel">
+    <h2>实时可视化（Canvas）</h2>
+    <canvas id="viz" height="360"></canvas>
+    <div class="legend">
+      <span><i class="chip exclusive"></i> 独占持有者</span>
+      <span><i class="chip shared"></i> 共享持有者</span>
+      <span><i class="chip degraded"></i> 降级执行（无锁保护）</span>
+      <span><i class="chip waiting"></i> 等待队列（FIFO，序号即顺序）</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>本页活动句柄</h2>
+    <table id="handles-table">
+      <thead><tr><th>请求</th><th>锁</th><th>模式</th><th>状态</th><th>操作</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>事件日志（IndexedDB 持久化）</h2>
+    <div class="row btns">
+      <button id="btn-clear-log" class="warn">清空日志</button>
+    </div>
+    <ul id="event-log"></ul>
+  </section>
+</main>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
