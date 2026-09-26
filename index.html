@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Locks 多标签页锁竞争演示</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>🔒 Web Locks 多标签页竞争演示</h1>
+  <div class="badges">
+    <span class="badge" id="badge-tab">标签页 …</span>
+    <span class="badge" id="badge-adapter">锁引擎 …</span>
+    <span class="badge warn" id="badge-coord" hidden>协调者 …</span>
+  </div>
+</header>
+<main>
+  <aside id="controls">
+    <h2>锁请求</h2>
+    <fieldset>
+      <legend>资源（多选将按名称排序依次加锁 → 死锁避免）</legend>
+      <label><input type="checkbox" name="res" value="res-alpha" checked> res-alpha</label>
+      <label><input type="checkbox" name="res" value="res-beta"> res-beta</label>
+      <label><input type="checkbox" name="res" value="res-gamma"> res-gamma</label>
+    </fieldset>
+    <fieldset>
+      <legend>锁模式</legend>
+      <label><input type="radio" name="mode" value="exclusive" checked> 独占 exclusive</label>
+      <label><input type="radio" name="mode" value="shared"> 共享 shared</label>
+    </fieldset>
+    <label class="row">等待超时 (ms, 0=不限)
+      <input type="number" id="timeout" value="5000" min="0" step="500">
+    </label>
+    <label class="row">持有时长 (ms, 0=手动释放)
+      <input type="number" id="hold" value="3000" min="0" step="500">
+    </label>
+    <label class="row">超时策略
+      <select id="strategy">
+        <option value="fail">放弃（报错）</option>
+        <option value="degrade">降级：无锁执行（脏写风险）</option>
+      </select>
+    </label>
+    <div class="btns">
+      <button id="btn-acquire" class="primary">获取锁</button>
+      <button id="btn-cancel">取消等待</button>
+      <button id="btn-release">释放全部</button>
+      <button id="btn-crash" class="danger">模拟崩溃（挂起）</button>
+    </div>
+    <h2>统计</h2>
+    <ul id="stats">
+      <li>已获取 <b id="st-acquired">0</b></li>
+      <li>超时 <b id="st-timeout">0</b></li>
+      <li>取消 <b id="st-cancel">0</b></li>
+      <li>降级执行 <b id="st-degraded">0</b></li>
+    </ul>
+  </aside>
+  <section id="stage">
+    <canvas id="viz"></canvas>
+    <p class="hint">提示：多开几个本页标签页，同时点击「获取锁」观察竞争、等待队列与公平性。</p>
+  </section>
+  <aside id="logwrap">
+    <h2>事件日志</h2>
+    <ul id="log"></ul>
+  </aside>
+</main>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
